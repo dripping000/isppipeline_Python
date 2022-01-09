@@ -15,45 +15,49 @@ def mono_image_show(image, width, height,compress_ratio=1):
     plt.show()
 
 
-
-    #internal  function
+# internal function
 def labf(t):
     d = t**(1/3)
-    index=np.where(t <= 0.008856)
-    d[index] = 7.787*t[index] + 16 / 116
+    index = np.where(t<=0.008856)
+    d[index] = 7.787 * t[index] + 16 / 116
     return d
+
 
 def RGB2LAB(X):
     a = np.array([
         [3.40479,  -1.537150, -0.498535],
         [-0.969256, 1.875992, 0.041556],
         [0.055648, -0.204043, 1.057311]])
-    ai=np.linalg.inv(a)
+    ai = np.linalg.inv(a)
     print(ai)
-    h,w,c=X.shape
+
+    h, w, c = X.shape
+
     R = X[:, :, 0]
     G = X[:, :, 1]
     B = X[:, :, 2]
     planed_R = R.flatten()
     planed_G = G.flatten()
     planed_B = B.flatten()
-    planed_image=np.zeros((c,h*w))
+
+    planed_image = np.zeros((c, h*w))
     planed_image[0, :] = planed_R
     planed_image[1, :] = planed_G
     planed_image[2, :] = planed_B
-    planed_lab=np.dot(ai,planed_image)
-    planed_1 = planed_lab[0,:]
-    planed_2 = planed_lab[1,:]
-    planed_3 = planed_lab[2,:]
-    L1 = np.reshape(planed_1, (h, w))
-    L2 = np.reshape(planed_2, (h, w))
-    L3 = np.reshape(planed_3, (h, w))
-    result_lab = np.zeros((h,w,c))
-    # color  space conversion  into LAB
-    result_lab[:,:, 0]=116 * labf(L2/ 255)-16;
-    result_lab[:,:, 1]=500 * (labf(L1 / 255)-labf(L2/ 255))
-    result_lab[:,:, 2]=200 * (labf(L2/ 255)-labf(L3 / 255))
 
+    planed_lab = np.dot(ai, planed_image)
+    planed_1 = planed_lab[0, :]
+    planed_2 = planed_lab[1, :]
+    planed_3 = planed_lab[2, :]
+    L1 = np.reshape(planed_1, (h,w))
+    L2 = np.reshape(planed_2, (h,w))
+    L3 = np.reshape(planed_3, (h,w))
+
+    # color  space conversion  into LAB
+    result_lab = np.zeros((h, w, c))
+    result_lab[:,:, 0] = 116 * labf(L2/255)-16
+    result_lab[:,:, 1] = 500 * (labf(L1/255) - labf(L2/255))
+    result_lab[:,:, 2] = 200 * (labf(L2/255) - labf(L3/255))
 
     return result_lab
 

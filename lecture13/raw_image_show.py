@@ -10,8 +10,9 @@ mono, the image data value is between 0~1
 def raw_image_show_fullsize(image, height, width):
     x = width/100
     y = height/100
+
     plt.figure(num='test', figsize=(x,y))
-    plt.imshow(image, cmap='gray', interpolation='bicubic', vmax=1.0,vmin=0.0)
+    plt.imshow(image, cmap='gray', interpolation='bicubic', vmax=1.0, vmin=0.0)
     plt.xticks([]), plt.yticks([])  # 隐藏X轴和Y轴的标记位置和labels
     plt.show()
     print('show')
