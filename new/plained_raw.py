@@ -1,7 +1,6 @@
-
 import numpy as np
 
-import raw_image_show as rawshow
+import raw_image_show
 
 
 def read_plained_file(file_path_name, height, width, shift_bits):
@@ -25,7 +24,7 @@ def write_plained_file(file_path_name, image):
 def test_case_read_planed_10():
     file_name = "RAW_GRBG_plained_4608(9216)x3456_A.raw"
     image = read_plained_file(file_name, 3456, 4608, 0)
-    rawshow.raw_image_show_thumbnail(image/1023, 3456, 4608)
+    raw_image_show.raw_image_show_thumbnail(image/1023, 3456, 4608)
 
     write_plained_file("test_result.raw",image)
 

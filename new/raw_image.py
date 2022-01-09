@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import raw_image_show as rawshow
+import raw_image_show
 
 
 # 不带颜色通道的分离
@@ -188,7 +188,7 @@ def test_case_hist():
     out=b.copy()
     out=out.astype(np.float)
     image=b
-    rawshow.raw_image_show_thumbnail(out/1023,3456, 4608)
+    raw_image_show.raw_image_show_thumbnail(out/1023,3456, 4608)
     hist=mono_cumuhistogram(image, 1023)
     plt.figure(num='hist', figsize=(5, 6))
     plt.bar(range(len(hist)), hist)
@@ -205,7 +205,7 @@ def test_case_separation_integration():
     print('%#x'%b[0])
     b.shape = [3456, 4608]
     out=b
-    rawshow.raw_image_show_thumbnail(out/1023,3456, 4608)
+    raw_image_show.raw_image_show_thumbnail(out/1023,3456, 4608)
 
 def get_statistcs_test():
     b = np.fromfile("RAW_GRBG_plained_4608(9216)x3456_A.raw",dtype ="uint16")
@@ -214,10 +214,10 @@ def get_statistcs_test():
     b.shape = [3456, 4608]
     out=b.copy()
     out=out/1023.0
-    rawshow.raw_image_show_thumbnail(out,3456, 4608)
+    raw_image_show.raw_image_show_thumbnail(out,3456, 4608)
     binning_image_data=binning_image(b, height=3456, width=4608, block_size_h=4, block_size_w=4)
     size=binning_image_data.shape
-    rawshow.raw_image_show_thumbnail(binning_image_data/1023, size[1], size[0] )
+    raw_image_show.raw_image_show_thumbnail(binning_image_data/1023, size[1], size[0] )
 
     print(size)
     #分块
@@ -245,7 +245,7 @@ def get_statistcs_test():
             averages[j, i, 1] = GR_a
             averages[j, i, 2] = GB_a
             averages[j, i, 3] = B_a
-    rawshow.raw_image_show_fullsize(averages[:,:,0] / 1023, 54, 72)
+    raw_image_show.raw_image_show_fullsize(averages[:,:,0] / 1023, 54, 72)
     return hists,averages
 
 if __name__ == "__main__":
