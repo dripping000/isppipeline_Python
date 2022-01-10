@@ -1,15 +1,12 @@
-import raw_image as raw
-import raw_image_show
-import plained_raw as plained_raw
 import numpy as np
 import matplotlib.pyplot as plt
-import color_utils as color
-from skimage import filters
 from scipy import signal
-import scipy.io as scio
-import numpy as np
 
 import cv2
+
+import plained_raw
+import color_utils
+import raw_image_show
 
 
 def DebugMK(file_name, image_name, data):
@@ -394,8 +391,8 @@ def AHD(img, pattern, delta=2, gamma=1, maxvalue=4095):
     Yy = AH_interpolateY(f, pattern, gamma, maxvalue)
 
     # 转LAB
-    YxLAB = color.RGB2LAB(Yx)
-    YyLAB = color.RGB2LAB(Yy)
+    YxLAB = color_utils.RGB2LAB(Yx)
+    YyLAB = color_utils.RGB2LAB(Yy)
 
     # 色彩差异的运算
     epsilonL, epsilonC = MNparamA(YxLAB, YyLAB)
