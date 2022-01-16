@@ -133,6 +133,10 @@ dmypy.json
 *.raw
 *.yuv
 *.jpg
+*.jpeg
 *.png
 *.bmp
 *.tif
+
+*.bin
+*.txt
