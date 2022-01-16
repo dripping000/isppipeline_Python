@@ -172,7 +172,7 @@ def CCM_convert(data, CCM, color_space="srgb", clip_range=[0, 255]):
         data = np.float32(data)
         data = np.divide(data, clip_range[1])  # 归一化
     elif (color_space == "hisi"):
-        data = degamma_hisi(data, clip_range, "./gamma_hisi_int.txt")
+        data = degamma_hisi(data, clip_range, "./Gamma_Data_DEC_20220113162723.txt")
         data = np.float32(data)
         data = np.divide(data, clip_range[1])  # 归一化
 
@@ -182,13 +182,25 @@ def CCM_convert(data, CCM, color_space="srgb", clip_range=[0, 255]):
     output[:, :, 1] = data[:, :, 0] * CCM[1,0] + data[:, :, 1] * CCM[1,1] + data[:, :, 2] * CCM[1,2]
     output[:, :, 2] = data[:, :, 0] * CCM[2,0] + data[:, :, 1] * CCM[2,1] + data[:, :, 2] * CCM[2,2]
 
+
+    # [DebugMK]
+    data_show = output.copy()
+    data_show = np.clip(data_show*clip_range[1], clip_range[0], clip_range[1])
+    # gbr = rgb[..., [2,0,1]]
+    # data_show = data_show[..., ::-1]
+    data_show = data_show[..., [2,1,0]]
+    cv2.imshow("data", data_show.astype(np.uint8))
+    cv2.imwrite("gamma_.bmp", data_show.astype(np.uint8))
+    cv2.waitKey(0)
+
+
     # gamma
     if (color_space == "srgb"):
         output = output * clip_range[1]
         output = color.gamma_srgb(output, clip_range)
     elif (color_space == "hisi"):
         output = output * clip_range[1]
-        output = gamma_hisi(output, clip_range, "./gamma_hisi_int.txt")
+        output = gamma_hisi(output, clip_range, "./Gamma_Data_DEC_20220113162723.txt")
     return output
 
 
@@ -250,6 +262,7 @@ def degamma_hisi(data, clip_range, gamma_txt):
     # data_show = data_show[..., ::-1]
     data_show = data_show[..., [2,1,0]]
     cv2.imshow("data", data_show.astype(np.uint8))
+    cv2.imwrite("gamma_.bmp", data_show.astype(np.uint8))
     cv2.waitKey(0)
 
     return np.clip(data*clip_range[1], clip_range[0], clip_range[1])
@@ -319,23 +332,41 @@ def gamma_hisi(data, clip_range, gamma_txt):
 
 
 if __name__ == "__main__":
-    # CCM = np.array([
-    #     [1.507812, -0.546875, 0.039062],
-    #     [-0.226562, 1.085938, 0.140625],
-    #     [-0.062500, -0.648438, 1.718750],
-    #     ])
     CCM = np.array([
         [1.0, 0.0, 0.0],
         [0.0, 1.0, 0.0],
         [0.0, 0.0, 1.0],
         ])
 
+    ccm_hisi = []
+
+    ccm_txt = "./ccm2.txt"
+    with open(ccm_txt, "r") as f:
+        for i, line in enumerate(f.readlines()):
+            line = line.split(',')
+
+            ccm_hisi = [int(x) for x in line]
+
+    for i in range(3):
+        for j in range(3):
+            if (ccm_hisi[i*3+j] & 0x8000) == 0x8000:
+                value = (ccm_hisi[i*3+j] & 0x7FFF)/(-256.0)
+            else:
+                value = ccm_hisi[i*3+j]/(256.0)
+            CCM[i][j] = value
+    print(ccm_hisi)
+    print(CCM)
+
+    CCM_I = np.matrix(CCM).I
+    print(CCM_I)
+
+
     maxvalue = 255
-    # image = plt.imread('kodim19.png')
-    image = plt.imread('test02.png')
+
+    image = plt.imread('result.jpeg')
     if (np.max(image) <= 1):
         image = image * maxvalue
 
-    new_image = CCM_convert(image, CCM, color_space="hisi", clip_range=[0, maxvalue])
+    new_image = CCM_convert(image, CCM_I, color_space="hisi", clip_range=[0, maxvalue])
     color.rgb_show(image / 255)
     color.rgb_show(new_image / 255)
