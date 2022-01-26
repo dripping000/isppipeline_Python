@@ -1,11 +1,13 @@
-from scipy import signal        # for convolutions
-from scipy import interpolate        # for convolutions
 import numpy as np
-import cv2 as cv
-import color_utils as color
 from matplotlib import pyplot as plt
-from scipy import ndimage       # for n-dimensional convolution
-def soft_coring(RGB, slope, tau_threshold, gamma_speed):
+from scipy import signal                # for convolutions
+
+import cv2
+
+import color_utils as color
+
+
+def soft_coring(RGB, slope, tau_threshold, gamma_speed):  # DebugMK
     # Usage: Used in the unsharp masking sharpening Process
     # Input:
     #   slope:                  controls the boost.
@@ -21,11 +23,10 @@ def soft_coring(RGB, slope, tau_threshold, gamma_speed):
     #   gamma_speed:            controls the speed of convergence to the slope
     #                           smaller value gives a little bit more
     #                           sharpened image, this may be a fine tuner
-
     return slope * RGB * (1. - np.exp(-((np.abs(RGB / tau_threshold)) ** gamma_speed)))
 
-def gaussian(kernel_size, sigma):
 
+def gaussian(kernel_size, sigma):
     # calculate which number to where the grid should be
     # remember that, kernel_size[0] is the width of the kernel
     # and kernel_size[1] is the height of the kernel
@@ -47,6 +48,7 @@ def gaussian(kernel_size, sigma):
 
     # make kernel sum equal to 1
     return temp / np.sum(temp)
+
 
 def sharpen_gaussian(RGB, gaussian_kernel_size=[5, 5], gaussian_sigma=2.0,\
                     slope=1.5, tau_threshold=0.02, gamma_speed=4., clip_range=[0, 255]):
@@ -101,43 +103,69 @@ def sharpen_gaussian(RGB, gaussian_kernel_size=[5, 5], gaussian_sigma=2.0,\
     return np.clip(RGB + soft_coring(image_high_pass, slope, tau_threshold, gamma_speed), clip_range[0], clip_range[1])
 
 
-
 def sharpen_convolove(image):
-    kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], np.float32) #锐化
-    dst = cv.filter2D(image, -1, kernel=kernel)
+    kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]], np.float32)  # 锐化
+    dst = cv2.filter2D(image, -1, kernel=kernel)
     return dst
 
+
 def sharpen_bilateralFilter(RGB):
-    d= 5 #kernel size
-    sigmaColor= 20 #color domain sigma
-    sigmaSpace= 20#space domain sigma
-    weight=3
-    #weight_ratio=0.3
+    d = 5  # kernel size
+    sigmaColor = 20  # color domain sigma
+    sigmaSpace = 20  # space domain sigma
+
+    weight = 3
+    weight_ratio = 0.3
+
     h, w, c = RGB.shape
     ycc = color.rgb2ycbcr(RGB, w, h)
     ycc_out=ycc
     y = ycc[:, :, 0]
     cb = ycc[:, :, 1]
     cr = ycc[:, :, 2]
-    y_bilateral_filtered = cv.bilateralFilter(y.astype(np.float32) , d, sigmaColor, sigmaSpace)
-    detail = ycc[:, :, 0]-y_bilateral_filtered
-    y_out =  y_bilateral_filtered + weight * detail
-    y_out =  np.clip(y_out,0,255)
-    #y_out = (1-weight_ratio)*y_bilateral_filtered + weight_ratio * detail
+
+    y_bilateral_filtered = cv2.bilateralFilter(y.astype(np.float32), d, sigmaColor, sigmaSpace)
+    detail = ycc[:, :, 0] - y_bilateral_filtered
+
+    y_out = y_bilateral_filtered + weight * detail
+    y_out = np.clip(y_out, 0, 255)
+
+    # y_out = (1-weight_ratio) * y_bilateral_filtered + weight_ratio * detail
+
     ycc_out[:, :, 0] = y_out
     rgb_out = color.ycbcr2rgb(ycc_out, w, h)
     return rgb_out
 
+
 if __name__ == "__main__":
-   #read image
-   # read_image
+    '''
+    x = np.arange(0, 10+0.5, 0.5)  # np.arange(start, end+step, step)  [start, end] end/step+1
+
+    tau_threshold = 0.02 * 255
+    gamma_speed = 4
+    tau_threshold1 = 0.02 * 255
+    gamma_speed1 = 2
+    y = (1. - np.exp(-((np.abs(x / tau_threshold)) ** gamma_speed)))
+    y1 = (1. - np.exp(-((np.abs(x / tau_threshold1)) ** gamma_speed1)))
+
+    plt.plot(x, y, color='r')
+    plt.plot(x, y1, color='b')
+    plt.show()
+    '''
+
+
+    # read image
     maxvalue = 255
-    LUT_SIZE=17
-    pattern = "GRBG"
+
     image = plt.imread('crop_bgr_0.jpg')
     if (np.max(image) <= 1):
-       image = image * maxvalue
-    #new_image=sharpen_bilateralFilter(image)
-    new_image=sharpen_gaussian(image)
-    color.rgb_show(image/255)
-    color.rgb_show(new_image/255)
+        image = image * maxvalue
+
+    new_image = sharpen_bilateralFilter(image)
+    # new_image = sharpen_gaussian(image)
+
+    # color.rgb_show(image/255)
+    # color.rgb_show(new_image/255)
+
+    new_image = new_image[..., ::-1]
+    cv2.imwrite("sharpness_.bmp", new_image.astype(np.uint8))

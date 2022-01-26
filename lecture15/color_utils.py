@@ -56,15 +56,19 @@ def RGB2LAB(X):
 
 
     return result_lab
-#显示RGB图像
-def rgb_show(image,compress_ratio=1):
-    height,width,z=image.shape
+
+
+# 显示RGB图像
+def rgb_show(image, compress_ratio=1):
+    height, width, z = image.shape
     x = width/(compress_ratio*100)
     y = height/(compress_ratio*100)
+
     plt.figure(num='test', figsize=(x, y))
     plt.imshow(image, interpolation='bicubic', vmax=1.0)
-    plt.xticks([]), plt.yticks([])  # 隐藏 X轴 和 Y轴的标记位置和labels
+    plt.xticks([]), plt.yticks([])  # 隐藏X轴和Y轴的标记位置和labels
     plt.show()
+
 
 #显示RGB图像
 def rgb_image_show(image, width, height,compress_ratio=1):
@@ -89,22 +93,28 @@ def ycbcr_decompress(image, width, height):
     image[:, :, 2]=(image[:,:,2]-16)*255/224
     image = np.clip(image, 0, 255)
     return image
+
+
 # 0~255 的 Ycbcr转换
 def ycbcr2rgb(image, width, height):
     rgb_img = np.zeros(shape=(height, width, 3))
-    rgb_img[:,:,0]=image[:,:,0]+1.402*(image[:,:,2]-128) #R= Y+1.402*(Cr-128)
-    rgb_img[:,:,1]=image[:,:,0]-0.344136*(image[:,:,1]-128)-0.714136*(image[:,:,2]-128)#G=Y-0.344136*(Cb-128)-0.714136*(Cr-128)
-    rgb_img[:,:,2]=image[:,:,0]+1.772*(image[:,:,1]-128) #B=Y+1.772*(Cb-128)
-    rgb_img=np.clip(rgb_img, 0, 255)
+    rgb_img[:,:,0] = image[:,:,0] + 1.402*(image[:,:,2]-128)  # R = Y + 1.402*(Cr-128)
+    rgb_img[:,:,1] = image[:,:,0] - 0.344136*(image[:,:,1]-128) - 0.714136*(image[:,:,2]-128)  # G = Y - 0.344136*(Cb-128) - 0.714136*(Cr-128)
+    rgb_img[:,:,2] = image[:,:,0] + 1.772*(image[:,:,1]-128)  # B = Y + 1.772*(Cb-128)
+    rgb_img = np.clip(rgb_img, 0, 255)
     return rgb_img
+
+
 # 0~255 的 Ycbcr转换
 def rgb2ycbcr(image, width, height):
     ycbcr_img = np.zeros(shape=(height, width, 3))
-    ycbcr_img[:,:,0]=0.299*image[:,:,0]+0.5877*image[:,:,1]+0.114*image[:,:,2]
-    ycbcr_img[:,:,1]=128-0.168736*image[:,:,0]-0.331264*image[:,:,1]+0.5*image[:,:,2]
-    ycbcr_img[:,:,2]=128+0.5*image[:,:,0]-0.418688*image[:,:,1]-0.081312*image[:,:,2]
-    ycbcr_img=np.clip(ycbcr_img, 0, 255)
+    ycbcr_img[:,:,0] = 0.299*image[:,:,0] + 0.5877*image[:,:,1] + 0.114*image[:,:,2]
+    ycbcr_img[:,:,1] = 128 - 0.168736*image[:,:,0] - 0.331264*image[:,:,1] + 0.5*image[:,:,2]
+    ycbcr_img[:,:,2] = 128 + 0.5*image[:,:,0] - 0.418688*image[:,:,1] - 0.081312*image[:,:,2]
+    ycbcr_img = np.clip(ycbcr_img, 0, 255)
     return ycbcr_img
+
+
 def ycbcrshow(image, width, height):
     imagergb=ycbcr2rgb(image, width, height)
     rgb_image_show(imagergb, width, height)
