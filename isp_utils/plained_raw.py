@@ -1,6 +1,6 @@
 import numpy as np
 
-import raw_image_show
+from isp_utils import raw_image_show
 
 
 def read_plained_file(file_path_name, height, width, shift_bits):

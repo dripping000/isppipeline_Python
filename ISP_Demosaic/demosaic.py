@@ -541,6 +541,29 @@ def test_AHD_demosaic():
     return
 
 
+def interface(raw, width, height, BayerPatternType, clip_range):
+    maxvalue = clip_range[1]
+
+    # raw_ = blinnear(raw, BayerPatternType)
+    raw_ = AHD(raw, BayerPatternType, 2, 1, maxvalue=maxvalue)
+
+    # gamma
+    raw_ = (raw_/maxvalue) ** (1/2.2) * maxvalue
+
+    # show
+    # height, width = raw_.shape
+
+    x = width / 100
+    y = height / 100
+
+    plt.figure(num='test', figsize=(x,y))
+    plt.imshow(raw_/maxvalue, interpolation='bicubic', vmax=1.0)
+    plt.xticks([]), plt.yticks([])  # 隐藏X轴和Y轴的标记位置和labels
+    plt.show()
+    print("hello")
+    return raw_
+
+
 if __name__ == "__main__":
     # test_blinnear_demosaic()
     # test_AH_demosaic()

@@ -232,6 +232,24 @@ def  hvs_behavior_denoise(image, bayer_pattern, initial_noise_level, hvs_min, hv
     return np.clip(denoised_out, clip_range[0], clip_range[1]), texture_degree_debug
 
 
+def interface(raw, width, hight, BayerPatternType, clip_range):
+    neighborhood_size = 7
+    initial_noise_level = clip_range[1] * 2 / 100
+
+    hvs_min = 20
+    hvs_max = 50
+
+    threshold_green = 60
+    threshold_red_blue = 100
+
+    raw_, texture_degree_debug = hvs_behavior_denoise(
+        raw, BayerPatternType,
+        initial_noise_level, hvs_min, hvs_max, threshold_red_blue, threshold_green,
+        clip_range, neighborhood_size)
+
+    return raw_
+
+
 if __name__ == "__main__":
     heigth = 768
     weight = 512
@@ -250,5 +268,5 @@ if __name__ == "__main__":
     img = img.astype(np.float)
     raw_image_show.raw_image_show_fullsize(img/1023, heigth, weight)
 
-    img2, texture_degree_debug = hvs_behavior_denoise(img,"RGGB", initial_noise_level, hvs_min, hvs_max, threshold_red_blue, threshold_green, clip_range, neighborhood_size)
+    img2, texture_degree_debug = hvs_behavior_denoise(img, "RGGB", initial_noise_level, hvs_min, hvs_max, threshold_red_blue, threshold_green, clip_range, neighborhood_size)
     raw_image_show.raw_image_show_fullsize(img2/1023, heigth, weight)
