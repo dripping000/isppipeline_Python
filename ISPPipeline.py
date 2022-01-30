@@ -35,10 +35,12 @@ if __name__ == "__main__":
 
     # /* BNR */
     raw = ISP_NR.hvs_denoise.interface(raw, width, height, BayerPatternType, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test.bin", "./Resource/test.bmp", raw, clip_range)
 
 
     # /* Demosaic */
     raw = ISP_Demosaic.demosaic.interface(raw, width, height, BayerPatternType, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test.bin", "./Resource/test.bmp", raw, clip_range)
 
 
     print("ISPPipeline_end")

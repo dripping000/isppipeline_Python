@@ -1,5 +1,7 @@
 import numpy as np
 
+import cv2
+
 from isp_utils import raw_image_show
 
 
@@ -19,6 +21,16 @@ def read_plained_file(file_path_name, height, width, shift_bits):
 def write_plained_file(file_path_name, image):
     image = image.astype(np.uint16)
     image.tofile(file_path_name)
+
+
+def DebugMK_raw(file_name, image_name, data, clip_range):
+    write_plained_file(file_name, data)  # [DebugMK]
+
+    if len(data.shape) == 3:
+        data_show = data.copy()
+        data_show = data_show / clip_range[1] * 255
+        data_show = data_show[..., [2,1,0]]
+        cv2.imwrite(image_name, data_show.astype(np.uint8))  # [DebugMK]
 
 
 def test_case_read_planed_10():
