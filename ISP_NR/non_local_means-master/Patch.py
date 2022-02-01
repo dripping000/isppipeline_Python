@@ -18,10 +18,10 @@ class Patch(Grid):
             # Patch height
             for y in range(self.ordinate_size):
                 if (
-                    center[0] + x - self.half_size >= 0						# Take values only in the image
-                    and center[1] + y - self.half_size >= 0					# Warning :
-                    and center[0] + x - self.half_size < image.width		#	- out of range without
-                    and center[1] + y - self.half_size < image.height		#	  this checkup
+                    center[0] + x - self.half_size >= 0                     # Take values only in the image
+                    and center[1] + y - self.half_size >= 0                 # Warning :
+                    and center[0] + x - self.half_size < image.width        #   - out of range without
+                    and center[1] + y - self.half_size < image.height       #     this checkup
                 ):
                     self.grid[x][y] = image.getpixel((center[0] + x - self.half_size, center[1] + y - self.half_size))
         #print(self.grid)
@@ -37,9 +37,9 @@ class Patch(Grid):
             # Patch height
             for y in range(self.ordinate_size):
                 if (
-                    type(grid) is Patch				# Check types before comparison
-                    and grid.grid[x][y] != -1		# Check the content of the other grid
-                    and self.grid[x][y] != -1		# Check the content of the current grid
+                    type(grid) is Patch             # Check types before comparison
+                    and grid.grid[x][y] != -1       # Check the content of the other grid
+                    and self.grid[x][y] != -1       # Check the content of the current grid
                 ):
                     # Compute the distance
                     distance += abs(grid.grid[x][y] - self.grid[x][y]) ** 2
