@@ -84,7 +84,7 @@ def sharpen_gaussian(RGB, gaussian_kernel_size=[5, 5], gaussian_sigma=2.0,\
     # second input is the kernel
     # output shape will be the same as the first input
     # boundary will be padded by using symmetrical method while convolving
-    if np.ndim(RGB > 2):
+    if np.ndim(RGB) > 2:
         image_blur = np.empty(np.shape(RGB), dtype=np.float32)
         for i in range(0, np.shape(RGB)[2]):
             image_blur[:, :, i] = signal.convolve2d(RGB[:, :, i], gaussian_kernel, mode="same", boundary="symm")
@@ -135,6 +135,12 @@ def sharpen_bilateralFilter(RGB):
     ycc_out[:, :, 0] = y_out
     rgb_out = color.ycbcr2rgb(ycc_out, w, h)
     return rgb_out
+
+
+def interface(image, width, height, clip_range):
+    image_ = sharpen_gaussian(image, clip_range=clip_range)
+
+    return image_
 
 
 if __name__ == "__main__":

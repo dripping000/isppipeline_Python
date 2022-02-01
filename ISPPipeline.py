@@ -15,6 +15,7 @@ import numpy as np
 from isp_utils import plained_raw
 import ISP_NR.hvs_denoise
 import ISP_Demosaic.demosaic
+import ISP_Sharpen.sharpen
 
 
 if __name__ == "__main__":
@@ -33,14 +34,20 @@ if __name__ == "__main__":
     raw = plained_raw.read_plained_file("./Resource/DSC16_1339_768x512_rggb_blc.raw", height, width, shift_bits)
     raw = raw.astype(np.float)
 
+
     # /* BNR */
     # raw = ISP_NR.hvs_denoise.interface(raw, width, height, BayerPatternType, clip_range)
-    # plained_raw.DebugMK_raw("./Resource/test.bin", "./Resource/test.bmp", raw, clip_range)
+    # plained_raw.DebugMK_raw("./Resource/test_BNR.bin", "./Resource/test_BNR.bmp", raw, clip_range)
 
 
     # /* Demosaic */
-    raw = ISP_Demosaic.demosaic.interface(raw, width, height, BayerPatternType, clip_range)
-    plained_raw.DebugMK_raw("./Resource/test.bin", "./Resource/test.bmp", raw, clip_range)
+    image = ISP_Demosaic.demosaic.interface(raw, width, height, BayerPatternType, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test_Demosaic.bin", "./Resource/test_Demosaic.bmp", image, clip_range)
+
+
+    # /* Sharpen */
+    image = ISP_Sharpen.sharpen.interface(image, width, height, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test_Sharpen.bin", "./Resource/test_Sharpen.bmp", image, clip_range)
 
 
     print("ISPPipeline_end")
