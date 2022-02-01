@@ -3,7 +3,8 @@ from bm3d_1st_step import bm3d_1st_step
 from bm3d_2nd_step import bm3d_2nd_step
 from psnr import compute_psnr
 
-#n_H搜索窗口大小的一半 k_H patch大小   N_H寻找相似patch的数量 P_H是step tauMatch_H相似阈值 useSD_H是否用标准差做合成的权重,tau_2D_H选择哪种变换
+
+# n_H搜索窗口大小的一半 k_H:patch大小 N_H寻找相似patch的数量 P_H是step tauMatch_H相似阈值 useSD_H是否用标准差做合成的权重 tau_2D_H选择哪种变换
 def run_bm3d(noisy_im, sigma,
              n_H, k_H, N_H, p_H, tauMatch_H, useSD_H, tau_2D_H, lambda3D_H,
              n_W, k_W, N_W, p_W, tauMatch_W, useSD_W, tau_2D_W):
@@ -25,8 +26,9 @@ def run_bm3d(noisy_im, sigma,
 
 if __name__ == '__main__':
     import os
-    import cv2
     import numpy as np
+    import cv2
+
 
     # <hyper parameter> -------------------------------------------------------------------------------
     n_H = 16
@@ -44,8 +46,6 @@ if __name__ == '__main__':
     # useSD_H = False
     # tau_2D_H = 'BIOR'
 
-
-
     n_W = 16
     k_W = 8
     N_W = 32
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     useSD_W = True
     tau_2D_W = 'DCT'
     # <\ hyper parameter> -----------------------------------------------------------------------------
+
 
     im_dir = 'test_data/image'
     save_dir = 'temp_test_result'
