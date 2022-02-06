@@ -16,6 +16,7 @@ from isp_utils import plained_raw
 import ISP_NR.hvs_denoise
 import ISP_Demosaic.demosaic
 import ISP_Sharpen.sharpen
+import ISP_LTM.ltm
 
 
 if __name__ == "__main__":
@@ -32,6 +33,8 @@ if __name__ == "__main__":
 
     # /* read raw */
     raw = plained_raw.read_plained_file("./Resource/DSC16_1339_768x512_rggb_blc.raw", height, width, shift_bits)
+    print("/* read raw */ shape", raw.shape)
+    print("/* read raw */ max", np.max(raw), "min", np.min(raw), "\n")
     raw = raw.astype(np.float)
 
 
@@ -41,13 +44,27 @@ if __name__ == "__main__":
 
 
     # /* Demosaic */
+    # clip_range--->clip_range gamma_off
     image = ISP_Demosaic.demosaic.interface(raw, width, height, BayerPatternType, clip_range)
+    print("/* Demosaic */ shape", image.shape)
+    print("/* Demosaic */ max", np.max(image), "min", np.min(image), "\n")
     plained_raw.DebugMK_raw("./Resource/test_Demosaic.bin", "./Resource/test_Demosaic.bmp", image, clip_range)
 
 
     # /* Sharpen */
+    # clip_range--->clip_range
     image = ISP_Sharpen.sharpen.interface(image, width, height, clip_range)
+    print("/* Sharpen */ shape", image.shape)
+    print("/* Sharpen */ max", np.max(image), "min", np.min(image), "\n")
     plained_raw.DebugMK_raw("./Resource/test_Sharpen.bin", "./Resource/test_Sharpen.bmp", image, clip_range)
+
+
+    # /* LTM */
+    # clip_range--->clip_range gamma_on
+    image = ISP_LTM.ltm.interface(image, width, height, clip_range)
+    print("/* LTM */ shape", image.shape)
+    print("/* LTM */ max", np.max(image), "min", np.min(image), "\n")
+    plained_raw.DebugMK_raw("./Resource/test_LTM.bin", "./Resource/test_LTM.bmp", image, clip_range)
 
 
     print("ISPPipeline_end")

@@ -70,10 +70,32 @@ def LTM(RGB, maxvalue=(2**14-1), new_scale=30):
     chroma = np.clip(chroma, 0, 1)  # DebugMK
     print("chroma max", np.max(chroma), "min", np.min(chroma))
 
-    # 不做的话,色彩会偏色.
+    # gamma 不做的话,色彩会偏色.
     chroma = chroma**(1/2.2)
 
     return chroma
+
+
+def interface(image, width, height, clip_range):
+    maxvalue = clip_range[1]
+
+    # image = image / np.max(image)  # 归一化
+    image = image / maxvalue  # 归一化
+    if (np.max(image) <= 1):
+        image = image * maxvalue
+        print("image_src*maxvalue max", np.max(image), "min", np.min(image))
+
+        image = np.round(image)
+        image += 1
+        print("int(image_src*maxvalue)+1 max", np.max(image), "min", np.min(image))
+        print("\n")
+
+    new_image = LTM(image, maxvalue=maxvalue)
+    print("image_result max", np.max(new_image), "min", np.min(new_image))
+
+    new_image = new_image * maxvalue
+
+    return new_image
 
 
 if __name__ == "__main__":

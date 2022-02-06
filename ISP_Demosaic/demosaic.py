@@ -548,7 +548,8 @@ def interface(raw, width, height, BayerPatternType, clip_range):
     # raw_ = AHD(raw, BayerPatternType, 2, 1, maxvalue=maxvalue)
 
     # gamma
-    raw_ = (raw_/maxvalue) ** (1/2.2) * maxvalue
+    # raw_ = np.clip(raw_, 1, clip_range[1])
+    # raw_ = (raw_/maxvalue) ** (1/2.2) * maxvalue
 
     return raw_
 
