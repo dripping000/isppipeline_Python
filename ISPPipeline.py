@@ -23,16 +23,18 @@ if __name__ == "__main__":
     print("ISPPipeline_start")
 
     # /* read raw */
-    width = 768
-    height = 512
+    file_name = "./Resource/raw_long_2880x1620_16_BG_0111093132_[US=10000,AG=1329,DG=1024,R=1605,G=1024,B=1700].raw"
+
+    width = 2880
+    height = 1620
     shift_bits = 0
 
-    BayerPatternType = "RGGB"
-    clip_range = [0, 1023]
+    BayerPatternType = "BGGR"
+    clip_range = [0, 2**16-1]
 
 
     # /* read raw */
-    raw = plained_raw.read_plained_file("./Resource/DSC16_1339_768x512_rggb_blc.raw", height, width, shift_bits)
+    raw = plained_raw.read_plained_file(file_name, height, width, shift_bits)
     print("/* read raw */ shape", raw.shape)
     print("/* read raw */ max", np.max(raw), "min", np.min(raw), "\n")
     raw = raw.astype(np.float)
