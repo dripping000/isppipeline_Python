@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
 
     # /* BNR */
+    # clip_range--->clip_range
     # raw = ISP_NR.hvs_denoise.interface(raw, width, height, BayerPatternType, clip_range)
     # plained_raw.DebugMK_raw("./Resource/test_BNR.bin", "./Resource/test_BNR.bmp", raw, clip_range)
 
