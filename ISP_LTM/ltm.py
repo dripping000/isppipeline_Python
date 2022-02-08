@@ -76,6 +76,43 @@ def LTM(RGB, maxvalue=(2**14-1), new_scale=30):
     return chroma
 
 
+def test_read_Sigmastar_WDRCurve():
+    x = np.arange(0, 255+1, 1)  # [0, 255]
+    y = []  # [0, 4095]
+
+    # read
+    with open("../Resource/HDRMode_WDRCurve参考曲线.txt", "r") as f:
+        for i, line in enumerate(f.readlines()):
+            if i != 0:
+                line = line.strip('\n')
+                # print(i-1, line)
+                y.append(float(line))
+
+    y_ = np.log10(x)
+    y_ = y_ / max(y_)* 4095  # 归一化
+    y_[0] = 0
+
+    # plt.plot(x, y, color='r')
+    # plt.plot(x, y_, color='b')
+    # plt.show()
+
+    # write
+    y_write = y_
+    for i in range(256):  # [0, 255]
+        if i <= 4:  # [DebugMK]
+            print(i)
+            y_write[i] = 0
+
+    with open("../Resource/HDRMode_WDRCurve参考曲线_.txt","w") as f:
+        f.write("Fcurve:1~256\n")
+
+        for i in range(256):  # [0, 255]
+            # print(i)
+            f.write(str(int(y_write[i]))+"\n")
+
+    print("test_read_Sigmastar_WDRCurve")
+
+
 def interface(image, width, height, clip_range):
     maxvalue = clip_range[1]
 
@@ -99,13 +136,17 @@ def interface(image, width, height, clip_range):
 
 
 if __name__ == "__main__":
-    '''    '''
+    test_read_Sigmastar_WDRCurve()
+
+
+    '''
     x = np.arange(0, (2**14 - 1)+1, 1)  # np.arange(start, end+step, step)  [start, end] end/step+1
 
     y = np.log10(x)
 
     plt.plot(x, y, color='r')
     plt.show()
+    '''
 
 
     # read image
