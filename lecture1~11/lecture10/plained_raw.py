@@ -3,13 +3,16 @@ import numpy as np
 import raw_image_show as rawshow
 import math
 
-def read_plained_file(file_path_name,height,width,shift_bits):
+def read_plained_file(file_path_name, height, width, shift_bits):
     frame = np.fromfile(file_path_name, dtype="uint16")
-    # print("b shape",b.shape)
-    # print('%#x'%b[0])
-    frame=frame[0:height*width]
+    # print('%#x' % frame[0])
+
+    frame = frame[0:height*width]
     frame.shape = [height, width]
-    frame=np.right_shift(frame, shift_bits)
+    frame = np.right_shift(frame, shift_bits)
+
+    # print("shape", frame.shape)
+
     return frame
 
 def write_plained_file(file_path_name,image):

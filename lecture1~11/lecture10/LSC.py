@@ -203,13 +203,17 @@ def create_lsc_data(img, block_size, pattern):
 
 
 if __name__ == "__main__":
-    img = plained_raw.read_plained_file("sigma.raw", height=1520, width=2688, shift_bits=0)
-    block_size = 8
+    width = 2560
+    height=1440
+
     pattern = "BGGR"
+
+    img = plained_raw.read_plained_file("sigma.raw", height, width, shift_bits=0)
+    block_size = 16
     shading_R, shading_GR, shading_GB, shading_B = create_lsc_data(img, block_size, pattern)
 
-    img2 = plained_raw.read_plained_file("sigma.raw", height=1520, width=2688, shift_bits=0)
-    raw_image_show.raw_image_show_fullsize(img2/65535, height=1520, width=2688)
+    img2 = plained_raw.read_plained_file("sigma.raw", height, width, shift_bits=0)
+    raw_image_show.raw_image_show_fullsize(img2/65535, height, width)
 
     # 普通的
     #apply_shading_to_image(img=img, block_size=block_size, shading_R=EX_R, shading_GR=EX_GR, shading_GB=EX_GB, shading_B=EX_B, pattern="GRBG")
