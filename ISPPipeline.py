@@ -13,8 +13,10 @@ sys.path.extend(syspath)
 import numpy as np
 
 from isp_utils import plained_raw
+from isp_utils import raw_image_show
 
 import ISP_BLC.blc
+import ISP_DPC.dpc
 import ISP_NR.hvs_denoise
 import ISP_Demosaic.demosaic
 import ISP_Sharpen.sharpen
@@ -25,18 +27,19 @@ if __name__ == "__main__":
     print("ISPPipeline_start")
 
     # /* read raw */
-    file_name = "./Resource/raw_long_2880x1620_16_BG_0111093132_[US=10000,AG=1329,DG=1024,R=1605,G=1024,B=1700].raw"
+    file_name = "./Resource/DSC16_1339_768x512_rggb_wait_dpc.raw"
 
-    width = 2880
-    height = 1620
+    width = 768
+    height = 512
     shift_bits = 0
 
-    BayerPatternType = "BGGR"
-    clip_range = [0, 2**16-1]
+    BayerPatternType = "RGGB"
+    clip_range = [0, 2**10-1]
 
 
     # /* read raw */
     raw = plained_raw.read_plained_file(file_name, height, width, shift_bits)
+    raw_image_show.raw_image_show_fullsize(raw/clip_range[1], height, width)
     print("/* read raw */ shape", raw.shape)
     print("/* read raw */ max", np.max(raw), "min", np.min(raw), "\n")
     raw = raw.astype(np.float)
@@ -44,8 +47,14 @@ if __name__ == "__main__":
 
     # /* BLC */
     # clip_range--->clip_range
-    raw = ISP_BLC.blc.interface(raw, width, height, BayerPatternType, clip_range)
-    plained_raw.DebugMK_raw("./Resource/test_BLC.bin", "./Resource/test_BLC.bmp", raw, clip_range)
+    # raw = ISP_BLC.blc.interface(raw, width, height, BayerPatternType, clip_range)
+    # plained_raw.DebugMK_raw("./Resource/test_BLC.bin", "./Resource/test_BLC.bmp", raw, clip_range)
+
+
+    # /* DPC */
+    # clip_range--->clip_range
+    raw = ISP_DPC.dpc.interface(raw, width, height, BayerPatternType, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test_DPC.bin", "./Resource/test_DPC.bmp", raw, clip_range)
 
 
     # /* BNR */
