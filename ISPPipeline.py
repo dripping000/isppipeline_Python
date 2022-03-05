@@ -13,6 +13,8 @@ sys.path.extend(syspath)
 import numpy as np
 
 from isp_utils import plained_raw
+
+import ISP_BLC.blc
 import ISP_NR.hvs_denoise
 import ISP_Demosaic.demosaic
 import ISP_Sharpen.sharpen
@@ -38,6 +40,12 @@ if __name__ == "__main__":
     print("/* read raw */ shape", raw.shape)
     print("/* read raw */ max", np.max(raw), "min", np.min(raw), "\n")
     raw = raw.astype(np.float)
+
+
+    # /* BLC */
+    # clip_range--->clip_range
+    raw = ISP_BLC.blc.interface(raw, width, height, BayerPatternType, clip_range)
+    plained_raw.DebugMK_raw("./Resource/test_BLC.bin", "./Resource/test_BLC.bmp", raw, clip_range)
 
 
     # /* BNR */
