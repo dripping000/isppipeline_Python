@@ -17,6 +17,7 @@ from isp_utils import raw_image_show
 
 import ISP_BLC.blc
 import ISP_DPC.dpc
+import ISP_LSC.lsc
 import ISP_NR.hvs_denoise
 import ISP_Demosaic.demosaic
 import ISP_Sharpen.sharpen
@@ -29,6 +30,7 @@ if __name__ == "__main__":
 
     BLC_flag = 0
     DPC_flag = 0
+    LSC_flag = 1
     BNR_flag = 0
 
     Demosaic_flag = 1
@@ -37,13 +39,13 @@ if __name__ == "__main__":
 
 
     # /* read raw */
-    file_name = "./Resource/DSC16_1339_768x512_rggb_wait_dpc.raw"
+    file_name = "./Resource/D65_4032_2752_GRBG_1_BLC.raw"
 
-    width = 768
-    height = 512
+    width = 4032
+    height = 2752
     shift_bits = 0
 
-    BayerPatternType = "RGGB"
+    BayerPatternType = "GRBG"
     clip_range = [0, 2**10-1]
 
 
@@ -67,6 +69,14 @@ if __name__ == "__main__":
         # clip_range--->clip_range
         raw = ISP_DPC.dpc.interface(raw, width, height, BayerPatternType, clip_range)
         plained_raw.DebugMK_raw("./Resource/test_DPC.bin", "./Resource/test_DPC.bmp", raw, clip_range)
+
+
+    if LSC_flag == 1:
+        # /* LSC */
+        # clip_range--->clip_range
+        raw = ISP_LSC.lsc.interface(raw, width, height, BayerPatternType, clip_range)
+        plained_raw.DebugMK_raw("./Resource/test_LSC.bin", "./Resource/test_LSC.bmp", raw, clip_range)
+        raw_image_show.raw_image_show_fullsize(raw/clip_range[1], height, width)
 
 
     if BNR_flag == 1:
