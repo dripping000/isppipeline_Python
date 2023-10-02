@@ -39,8 +39,7 @@ def apply_shading_to_image_ratio(img, block_size, shading_R, shading_GR, shading
     # 用G做luma
     luma_shading = (shading_GR + shading_GB) / 2
     # 计算调整之后luma shading
-    # new_luma_shading = (luma_shading-1)*ratio+1
-    new_luma_shading = luma_shading*ratio + (1-ratio)
+    new_luma_shading = (luma_shading-1)*ratio+1
 
     # 计算color shading
     R_color_shading = shading_R / luma_shading
@@ -131,6 +130,8 @@ def create_lsc_data(img, block_size, pattern):
 
             RA[block_y_num,block_x_num] = (yy - center_y) * (yy - center_y) + (xx - center_x) * (xx - center_x)
 
+    # raw_image_show.raw_image_show_3D(R_LSC_data,Hblocks,Wblocks)  # DebugMK
+
     # 4个颜色数据通道展平
     RA_flatten = RA.flatten()
     R_LSC_data_flatten = R_LSC_data.flatten()
@@ -156,21 +157,21 @@ def create_lsc_data(img, block_size, pattern):
     R_GR = GR_LSC_data_flatten/np.max(GR_LSC_data_flatten)
     R_GB = GB_LSC_data_flatten/np.max(GB_LSC_data_flatten)
     R_B = B_LSC_data_flatten/np.max(B_LSC_data_flatten)
-    # plt.scatter(RA_flatten, R_B, color='blue')
-    # plt.scatter(RA_flatten, R_GR, color='green')
-    # plt.scatter(RA_flatten, R_GB, color='green')
-    # plt.scatter(RA_flatten, R_R, color='red')
+    # plt.scatter(RA_flatten, R_B, s=1, color='blue')
+    # plt.scatter(RA_flatten, R_GR, s=1, color='green')
+    # plt.scatter(RA_flatten, R_GB, s=1, color='green')
+    # plt.scatter(RA_flatten, R_R, s=1, color='red')
     # plt.show()
 
     G_R = 1/R_R
     G_GR = 1/R_GR
     G_GB = 1/R_GB
     G_B = 1/R_B
-    # plt.scatter(RA_flatten, G_B, color='blue')
-    # plt.scatter(RA_flatten, G_GR, color='green')
-    # plt.scatter(RA_flatten, G_GB, color='green')
-    # plt.scatter(RA_flatten, G_R, color='red')
-    # plt.show()
+    plt.scatter(RA_flatten, G_B, s=1, color='blue')
+    plt.scatter(RA_flatten, G_GR, s=1, color='green')
+    plt.scatter(RA_flatten, G_GB, s=1, color='green')
+    plt.scatter(RA_flatten, G_R, s=1, color='red')
+    plt.show()
 
 
     # 重要的拟合
@@ -184,11 +185,11 @@ def create_lsc_data(img, block_size, pattern):
     ES_GB = par_GB[0] * (RA_flatten**3) + par_GB[1] * (RA_flatten**2) + par_GB[2]* (RA_flatten ) + par_GB[3]
     ES_B = par_B[0] * (RA_flatten**3) + par_B[1] * (RA_flatten**2) + par_B[2]* (RA_flatten ) + par_B[3]
     # show_2  # 拟合数据和原有数据有什么不同
-    # plt.scatter(RA_flatten, ES_B, color='blue')
-    # plt.scatter(RA_flatten, ES_GR, color='green')
-    # plt.scatter(RA_flatten, ES_GB, color='green')
-    # plt.scatter(RA_flatten, ES_R, color='red')
-    # plt.show()
+    plt.scatter(RA_flatten, ES_B, s=1, color='blue')
+    plt.scatter(RA_flatten, ES_GR, s=1, color='green')
+    plt.scatter(RA_flatten, ES_GB, s=1, color='green')
+    plt.scatter(RA_flatten, ES_R, s=1, color='red')
+    plt.show()
 
     # 通过拟合的函数生成一个补偿gain的表
     EX_RA = np.zeros((Hblocks+2, Wblocks+2))
@@ -208,11 +209,13 @@ def create_lsc_data(img, block_size, pattern):
             EX_GB[y, x]= par_GB[0] * (EX_RA[y,x]**3)+par_GB[1] * (EX_RA[y,x]**2) + par_GB[2]* (EX_RA[y,x] )+par_GB[3]
             EX_B[y, x]= par_B[0] * (EX_RA[y,x]**3)+par_B[1] * (EX_RA[y,x]**2) + par_B[2]* (EX_RA[y,x] )+par_B[3]
 
-    #中心用实际采样的数据
+    # 中心用实际采样的数据
     EX_R[1:1+Hblocks, 1:1+Wblocks] = G_R_LSC_data
     EX_GR[1:1+Hblocks, 1:1+Wblocks] = G_GR_LSC_data
     EX_GB[1:1+Hblocks, 1:1+Wblocks] = G_GB_LSC_data
     EX_B[1:1+Hblocks, 1:1+Wblocks] = G_B_LSC_data
+
+    # raw_image_show.raw_image_show_3D(EX_R,Hblocks+2,Wblocks+2)  # DebugMK
 
     return EX_R, EX_GR, EX_GB, EX_B
 
@@ -237,10 +240,10 @@ if __name__ == "__main__":
 
     block_size = 16
 
-    raw_lsc = plained_raw.read_plained_file("D65_4032_2752_GRBG_2_BLC.raw", height, width, shift_bits=0)
+    raw_lsc = plained_raw.read_plained_file("./Resource/D65_4032_2752_GRBG_2_BLC.raw", height, width, shift_bits=0)
     shading_R, shading_GR, shading_GB, shading_B = create_lsc_data(raw_lsc, block_size, pattern)
 
-    img2 = plained_raw.read_plained_file("D65_4032_2752_GRBG_1_BLC.raw", height, width, shift_bits=0)
+    img2 = plained_raw.read_plained_file("./Resource/D65_4032_2752_GRBG_2_BLC.raw", height, width, shift_bits=0)
     raw_image_show.raw_image_show_fullsize(img2/clip_range[1], height, width)
 
     # 普通的
@@ -248,6 +251,7 @@ if __name__ == "__main__":
     # luma和color shading
     new_image = apply_shading_to_image_ratio(img=img2, block_size=block_size, shading_R=shading_R, shading_GR=shading_GR, shading_GB=shading_GB, shading_B=shading_B, pattern=pattern, ratio=1, clip_range=clip_range)
     print(np.min(new_image), np.max(new_image))
+    raw_image_show.raw_image_show_3D(new_image,height,width)  # DebugMK
 
     # raw_image_show.raw_image_show_fakecolor(new_image/65535, height=1520, width=2688, pattern="BGGR")
     raw_image_show.raw_image_show_fullsize(new_image/clip_range[1], height, width)
