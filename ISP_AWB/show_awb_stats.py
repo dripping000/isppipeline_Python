@@ -120,8 +120,8 @@ if __name__ == '__main__':
     stat_index = 0  # Debug 多帧数据时，用于选择第几帧数据
     stat_num = 1  # Debug stat_index开始，连续显示stat_num帧数据
 
-    Dark_Stats_Threshold = 0  # Debug
-    Sat_Stats_Threshold = 65535  # Debug
+    Dark_Stats_Threshold = 77  # Debug
+    Sat_Stats_Threshold = 13107  # Debug
 
 
     SA_1_weight_global = 1.0
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     plt.scatter(r_g, b_g, c='c', s=10, label='AWB')
     plt.plot(r_g, b_g, color='c', linestyle='-')
 
-    polygon_SA = [(0.17, 1.36), (0.22, 1.36), (0.22, 0.14), (0.17, 0.14)]
+    polygon_SA = polygon_SA1
     plot_list_1_wbgain(plt, polygon_SA, quantization=1.0, color='c')
 
 
