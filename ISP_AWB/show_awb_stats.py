@@ -7,6 +7,11 @@ import traceback
 import json
 
 
+AWB_STAT_INT = (4096.0)
+stats_size_width = 64
+stats_size_height = 48
+
+
 def format_bit(x, num=6):
     return round(x, num)
 
@@ -71,9 +76,13 @@ def plot_list_1_wbgain(plt, list, quantization=1.0, color='y'):
 # 判断是否与水平射线相交
 def is_intersect(p1, p2, point):
     if min(p1[1], p2[1]) <= point[1] <= max(p1[1], p2[1]):
-        x = p1[0] + (point[1] - p1[1]) / (p2[1] - p1[1]) * (p2[0] - p1[0])
-        if point[0] < x:
-            return True
+        if (p2[1] - p1[1]) == 0:
+            if min(p1[0], p2[0]) <= point[0] <= max(p1[0], p2[0]):
+                return True
+        else:
+            x = int(p1[0] + (point[1] - p1[1]) / (p2[1] - p1[1]) * (p2[0] - p1[0]))
+            if point[0] < x:
+                return True
     return False
 
 def point_in_polygon(point, polygon):
@@ -120,13 +129,14 @@ if __name__ == '__main__':
     stat_index = 0  # Debug 多帧数据时，用于选择第几帧数据
     stat_num = 1  # Debug stat_index开始，连续显示stat_num帧数据
 
-    Dark_Stats_Threshold = 77  # Debug
-    Sat_Stats_Threshold = 13107  # Debug
+    Dark_Stats_Threshold = 0  # Debug 77
+    Sat_Stats_Threshold = 65535  # Debug 13107
 
 
     SA_1_weight_global = 1.0
 
     polygon_SA1 = [(0.33, 0.80), (0.42, 0.80), (0.42, 0.67), (0.33, 0.67)]
+    polygon_SA1 = [(int(point[0]*AWB_STAT_INT), int(point[1]*AWB_STAT_INT)) for point in polygon_SA1]
 
     SA_1_Level1_2ndTri_x = [0,0.04,     0.1,0.3,    0.4,0.6,    0.7,1]
     SA_1_Level1_2ndTri_y = [0,0,        0.8,0.8,    1,1,        1,1]
@@ -158,27 +168,28 @@ if __name__ == '__main__':
         g_min = 65535
         g_max = 0
 
-        for r in r_stat:
+        for index, r in enumerate(r_stat):
             # print(r_stat.index(r))
+            # print("------", index)
 
-            r_ = float(r_stat[r_stat.index(r)])
-            g_ = float(g_stat[r_stat.index(r)])
-            b_ = float(b_stat[r_stat.index(r)])
+            r_ = int(r_stat[index])
+            g_ = int(g_stat[index])
+            b_ = int(b_stat[index])
             # print(r, g_, b_)
 
             if g_ == 0.0:
-                print(r_stat.index(r), r_, g_, b_)
+                print(index, r_, g_, b_)
                 g_ = 1
 
-            rgain_min = 0
-            rgain_max = 1.5
-            bgain_min = 0
-            bgain_max = 2
-            rgain_ = np.clip(r_/g_, rgain_min, rgain_max)
-            bgain_ = np.clip(b_/g_, bgain_min, bgain_max)
+            rgain_min = int(0 * AWB_STAT_INT)
+            rgain_max = int(2 * AWB_STAT_INT)
+            bgain_min = int(0 * AWB_STAT_INT)
+            bgain_max = int(2 * AWB_STAT_INT)
+            rgain_ = np.clip(int(r_/g_*AWB_STAT_INT), rgain_min, rgain_max)
+            bgain_ = np.clip(int(b_/g_*AWB_STAT_INT), bgain_min, bgain_max)
 
-            V = math.floor(r_stat.index(r) / 64)
-            H = math.floor(r_stat.index(r) - V*64)
+            V = math.floor(index / 64)
+            H = index - V*64
 
             if g_ < g_min:
                 g_min = g_
@@ -189,7 +200,8 @@ if __name__ == '__main__':
                 else:
                     g_max = g_
 
-            if (r_stat.index(r)%2 == 0):
+            # if (index%2 == 0):  # (stats_size_width/2)*stats_size_height
+            if (1):  # stats_size_width*stats_size_height
                 if r_ < Dark_Stats_Threshold or g_ < Dark_Stats_Threshold or b_ < Dark_Stats_Threshold:
                     Dark_Stats_Count += 1
                     print('Dark_Stats_Count', g_, V, H)
@@ -211,6 +223,15 @@ if __name__ == '__main__':
                         SA_1_bgain_sum += bgain_
                         SA_1_num += 1
 
+                        # print(rgain_, bgain_, V, H)
+                        # data = str(rgain_) + " " + str(bgain_) + " " + str(V) + " " + str(H) + "\n"
+                        # with open("./tmp.txt", 'a') as file:
+                        #     file.write(data)
+
+                    # data = str(rgain_) + " " + str(bgain_) + " " + str(V) + " " + str(H) + "\n"
+                    # with open("./tmp.txt", 'a') as file:
+                    #     file.write(data)
+
         plt.scatter(rgain, bgain, c='m', s=2)
         plt.title(str(stat_index_)+": ", fontdict={'fontsize': 10})
 
@@ -218,10 +239,10 @@ if __name__ == '__main__':
         if SA_1_num == 0.0:
             SA_1_num = 1.0
         
-        SA_1_rgain = SA_1_rgain_sum / SA_1_num
-        SA_1_bgain = SA_1_bgain_sum / SA_1_num
+        SA_1_rgain = int(SA_1_rgain_sum / SA_1_num)
+        SA_1_bgain = int(SA_1_bgain_sum / SA_1_num)
 
-        SA_num_sum = 1536
+        SA_num_sum = stats_size_width*stats_size_height
 
         SA_1_Level1 = SA_1_num / SA_num_sum
         SA_1_Level1_CONFIDENCE = trigger_weight(SA_1_Level1, SA_1_Level1_2ndTri_x, SA_1_Level1_2ndTri_y)
@@ -237,6 +258,8 @@ if __name__ == '__main__':
 
     r_g = [0.253272, 0.407010, 0.442099, 0.527150, 0.515729, 0.586529, 0.781099, 1.021902, 1.401907]
     b_g = [0.939229, 0.773839, 0.728039, 0.578373, 0.447339, 0.448376, 0.363937, 0.297893, 0.187933]
+    r_g = [int(x*AWB_STAT_INT) for x in r_g]
+    b_g = [int(x*AWB_STAT_INT) for x in b_g]
 
     plt.scatter(r_g, b_g, c='c', s=10, label='AWB')
     plt.plot(r_g, b_g, color='c', linestyle='-')
