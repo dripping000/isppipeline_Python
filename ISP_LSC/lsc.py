@@ -7,6 +7,19 @@ import plained_raw
 import raw_image
 import raw_image_show
 
+import os
+import sys
+curPath = os.path.abspath(os.path.dirname(__file__)) + "\\"
+rootpath = str(curPath)+"..\\"
+syspath = sys.path
+depth = rootpath.count("\\") - 1
+sys.path = []
+sys.path.append(rootpath)  # 将工程根目录加入到python搜索路径中
+# sys.path.extend([rootpath+i for i in os.listdir(rootpath) if i[depth]!="."])  # 将工程目录下的一级目录添加到python搜索路径中
+sys.path.extend(syspath)
+# print(sys.path)
+import ISP_BLC.blc
+
 
 def apply_shading_to_image(img, block_size, shading_R, shading_GR, shading_GB, shading_B, pattern):
     R, GR, GB, B = raw_image.bayer_channel_separation(img, pattern)
@@ -35,11 +48,11 @@ def apply_shading_to_image(img, block_size, shading_R, shading_GR, shading_GB, s
     return new_image
 
 
-def apply_shading_to_image_ratio(img, block_size, shading_R, shading_GR, shading_GB, shading_B, pattern, ratio, clip_range=[0, 2**10-1]):
+def apply_shading_to_image_ratio(img, block_size_height, block_size_width, shading_R, shading_GR, shading_GB, shading_B, pattern, ratio, clip_range=[0, 2**10-1]):
     # 用G做luma
     luma_shading = (shading_GR + shading_GB) / 2
     # 计算调整之后luma shading
-    new_luma_shading = (luma_shading-1)*ratio+1
+    new_luma_shading = luma_shading*ratio
 
     # 计算color shading
     R_color_shading = shading_R / luma_shading
@@ -56,7 +69,7 @@ def apply_shading_to_image_ratio(img, block_size, shading_R, shading_GR, shading
     R, GR, GB, B = raw_image.bayer_channel_separation(img, pattern)
 
     HH, HW = R.shape
-    size_new = (HW + block_size, HH + block_size)
+    size_new = (HW + block_size_width, HH + block_size_height)
 
     # 插值的方法的选择
     ex_R_gain_map = cv2.resize(new_shading_R, size_new,interpolation=cv2.INTER_CUBIC)
@@ -65,11 +78,12 @@ def apply_shading_to_image_ratio(img, block_size, shading_R, shading_GR, shading
     ex_B_gain_map = cv2.resize(new_shading_B, size_new,interpolation=cv2.INTER_CUBIC)
 
     # 裁剪到原图大小
-    half_b_size = int(block_size / 2)
-    R_gain_map = ex_R_gain_map[half_b_size:half_b_size + HH, half_b_size:half_b_size + HW]
-    GR_gain_map = ex_GR_gain_map[half_b_size:half_b_size + HH, half_b_size:half_b_size + HW]
-    GB_gain_map = ex_GB_gain_map[half_b_size:half_b_size + HH, half_b_size:half_b_size + HW]
-    B_gain_map = ex_B_gain_map[half_b_size:half_b_size + HH, half_b_size:half_b_size + HW]
+    half_h_size = int(block_size_height / 2)
+    half_w_size = int(block_size_width / 2)
+    R_gain_map = ex_R_gain_map[half_h_size:half_h_size + HH, half_w_size:half_w_size + HW]
+    GR_gain_map = ex_GR_gain_map[half_h_size:half_h_size + HH, half_w_size:half_w_size + HW]
+    GB_gain_map = ex_GB_gain_map[half_h_size:half_h_size + HH, half_w_size:half_w_size + HW]
+    B_gain_map = ex_B_gain_map[half_h_size:half_h_size + HH, half_w_size:half_w_size + HW]
 
     R_new = R * R_gain_map
     GR_new = GR * GR_gain_map
@@ -82,15 +96,16 @@ def apply_shading_to_image_ratio(img, block_size, shading_R, shading_GR, shading
     return new_image
 
 
-def create_lsc_data(img, block_size, pattern):
+def create_lsc_data(img, block_size_height, block_size_width, pattern):
     # 分开四个颜色通道
     R, GR, GB, B = raw_image.bayer_channel_separation(img, pattern)
 
     # 每张的高宽
     HH, HW = R.shape
     # 生成分多少块
-    Hblocks = int(HH/block_size)  # [DebugMK]
-    Wblocks = int(HW/block_size)  # [DebugMK]
+    Hblocks = int(HH/block_size_height)  # [DebugMK]
+    Wblocks = int(HW/block_size_width)  # [DebugMK]
+    print("Hblocks=%d, Wblocks=%d" % (Hblocks, Wblocks))
     # 结果预分配
     R_LSC_data = np.zeros((Hblocks, Wblocks))
     B_LSC_data = np.zeros((Hblocks, Wblocks))
@@ -103,34 +118,42 @@ def create_lsc_data(img, block_size, pattern):
     center_y = HH/2
     center_x = HW/2
 
-    for y in range(0, HH, block_size):
-        for x in range(0, HW, block_size):
-            xx = x + block_size/2
-            yy = y + block_size/2
-            block_y_num = int(y / block_size)
-            block_x_num = int(x / block_size)
+    for y in range(0, HH, block_size_height):
+        for x in range(0, HW, block_size_width):
+            xx = x + block_size_width/2
+            yy = y + block_size_height/2
+            block_y_num = int(y / block_size_height)
+            block_x_num = int(x / block_size_width)
 
-            # 图像中心是光心
-            RA[block_y_num, block_x_num] = (yy - center_y) * (yy - center_y) + (xx - center_x) * (xx - center_x)
-            R_LSC_data[block_y_num, block_x_num] = R[y:y+block_size, x:x+block_size].mean()
-            GR_LSC_data[block_y_num, block_x_num] = GR[y:y+block_size, x:x+block_size].mean()
-            GB_LSC_data[block_y_num, block_x_num] = GB[y:y+block_size, x:x+block_size].mean()
-            B_LSC_data[block_y_num, block_x_num] = B[y:y+block_size, x:x+block_size].mean()
+            if ((x + block_size_width) > HW) or ((y + block_size_height) > HH):
+                print("block_y_num=%d, block_x_num=%d, x: %d-%d, y: %d-%d" % (block_y_num, block_x_num, x, x + block_size_width, y, y + block_size_height))
+            else:
+                # 图像中心是光心
+                RA[block_y_num, block_x_num] = (yy - center_y) * (yy - center_y) + (xx - center_x) * (xx - center_x)
+                R_LSC_data[block_y_num, block_x_num] = R[y:y+block_size_height, x:x+block_size_width].mean()
+                GR_LSC_data[block_y_num, block_x_num] = GR[y:y+block_size_height, x:x+block_size_width].mean()
+                GB_LSC_data[block_y_num, block_x_num] = GB[y:y+block_size_height, x:x+block_size_width].mean()
+                B_LSC_data[block_y_num, block_x_num] = B[y:y+block_size_height, x:x+block_size_width].mean()
 
     # 寻找光心块
     center_point = np.where(GR_LSC_data==np.max(GR_LSC_data))
-    center_y = center_point[0]*block_size + block_size/2
-    center_x = center_point[1]*block_size + block_size/2
-    for y in range(0, HH, block_size):
-        for x in range(0, HW, block_size):
-            xx = x + block_size/2
-            yy = y + block_size/2
-            block_y_num=int(y / block_size)
-            block_x_num =int(x / block_size)
+    center_y = center_point[0]*block_size_height + block_size_height/2
+    center_x = center_point[1]*block_size_width + block_size_width/2
+    for y in range(0, HH, block_size_height):
+        for x in range(0, HW, block_size_width):
+            xx = x + block_size_width/2
+            yy = y + block_size_height/2
+            block_y_num=int(y / block_size_height)
+            block_x_num =int(x / block_size_width)
 
-            RA[block_y_num,block_x_num] = (yy - center_y) * (yy - center_y) + (xx - center_x) * (xx - center_x)
+            if ((x + block_size_width) > HW) or ((y + block_size_height) > HH):
+                print("block_y_num=%d, block_x_num=%d, x: %d-%d, y: %d-%d" % (block_y_num, block_x_num, x, x + block_size_width, y, y + block_size_height))
+            else:
+                RA[block_y_num,block_x_num] = (yy - center_y) * (yy - center_y) + (xx - center_x) * (xx - center_x)
 
-    # raw_image_show.raw_image_show_3D(R_LSC_data,Hblocks,Wblocks)  # DebugMK
+    raw_image_show.raw_image_show_3D(R_LSC_data,Hblocks,Wblocks)  # DebugMK
+    plained_raw.write_plained_file("./Resource/new.raw",R_LSC_data)
+
 
     # 4个颜色数据通道展平
     RA_flatten = RA.flatten()
@@ -150,23 +173,24 @@ def create_lsc_data(img, block_size, pattern):
     G_GR_LSC_data = Max_GR/GR_LSC_data
     G_GB_LSC_data = Max_GB/GB_LSC_data
     G_B_LSC_data = Max_B/B_LSC_data
-
+    # 暗角不补偿
+    G_R_LSC_data[G_R_LSC_data > 10] = 1
+    G_GR_LSC_data[G_GR_LSC_data > 10] = 1
+    G_GB_LSC_data[G_GB_LSC_data > 10] = 1
+    G_B_LSC_data[G_B_LSC_data > 10] = 1
 
     # show_1
     R_R = R_LSC_data_flatten/np.max(R_LSC_data_flatten)
     R_GR = GR_LSC_data_flatten/np.max(GR_LSC_data_flatten)
     R_GB = GB_LSC_data_flatten/np.max(GB_LSC_data_flatten)
     R_B = B_LSC_data_flatten/np.max(B_LSC_data_flatten)
-    # plt.scatter(RA_flatten, R_B, s=1, color='blue')
-    # plt.scatter(RA_flatten, R_GR, s=1, color='green')
-    # plt.scatter(RA_flatten, R_GB, s=1, color='green')
-    # plt.scatter(RA_flatten, R_R, s=1, color='red')
-    # plt.show()
 
     G_R = 1/R_R
     G_GR = 1/R_GR
     G_GB = 1/R_GB
     G_B = 1/R_B
+
+    plt.figure()
     plt.scatter(RA_flatten, G_B, s=1, color='blue')
     plt.scatter(RA_flatten, G_GR, s=1, color='green')
     plt.scatter(RA_flatten, G_GB, s=1, color='green')
@@ -185,6 +209,7 @@ def create_lsc_data(img, block_size, pattern):
     ES_GB = par_GB[0] * (RA_flatten**3) + par_GB[1] * (RA_flatten**2) + par_GB[2]* (RA_flatten ) + par_GB[3]
     ES_B = par_B[0] * (RA_flatten**3) + par_B[1] * (RA_flatten**2) + par_B[2]* (RA_flatten ) + par_B[3]
     # show_2  # 拟合数据和原有数据有什么不同
+    plt.figure()
     plt.scatter(RA_flatten, ES_B, s=1, color='blue')
     plt.scatter(RA_flatten, ES_GR, s=1, color='green')
     plt.scatter(RA_flatten, ES_GB, s=1, color='green')
@@ -202,7 +227,7 @@ def create_lsc_data(img, block_size, pattern):
     new_center_x = center_point[1]+1
     for y in range(0, Hblocks+2):
          for x in range(0, Wblocks+2):
-            EX_RA[y, x]=(y-new_center_y)*block_size*(y-new_center_y)*block_size+(x-new_center_x)*block_size*(x-new_center_x)*block_size
+            EX_RA[y, x]=(y-new_center_y)*block_size_height*(y-new_center_y)*block_size_height+(x-new_center_x)*block_size_width*(x-new_center_x)*block_size_width
 
             EX_R[y, x]= par_R[0] * (EX_RA[y,x]**3)+par_R[1] * (EX_RA[y,x]**2) + par_R[2]* (EX_RA[y,x] )+par_R[3]
             EX_GR[y, x]= par_GR[0] * (EX_RA[y,x]**3)+par_GR[1] * (EX_RA[y,x]**2) + par_GR[2]* (EX_RA[y,x] )+par_GR[3]
@@ -215,9 +240,12 @@ def create_lsc_data(img, block_size, pattern):
     EX_GB[1:1+Hblocks, 1:1+Wblocks] = G_GB_LSC_data
     EX_B[1:1+Hblocks, 1:1+Wblocks] = G_B_LSC_data
 
-    # raw_image_show.raw_image_show_3D(EX_R,Hblocks+2,Wblocks+2)  # DebugMK
+    raw_image_show.raw_image_show_3D(EX_R,Hblocks+2,Wblocks+2)  # DebugMK
+    EX_R_debug = EX_R*1000
+    plained_raw.write_plained_file("./Resource/new.raw",EX_R_debug)
 
-    return EX_R, EX_GR, EX_GB, EX_B
+    # return EX_R, EX_GR, EX_GB, EX_B  # mesh边缘拟合
+    return G_R_LSC_data, G_GR_LSC_data, G_GB_LSC_data, G_B_LSC_data  # mesh
 
 
 def interface(raw, width, height, BayerPatternType, clip_range):
@@ -232,27 +260,37 @@ def interface(raw, width, height, BayerPatternType, clip_range):
 
 
 if __name__ == "__main__":
-    width = 4032
-    height = 2752
+    width = 4096
+    height = 3072
 
-    pattern = "GRBG"
-    clip_range = [0, 2**10-1]
+    pattern = "BGGR"
+    clip_range = [0, 2**14-1]
 
-    block_size = 16
+    # block_size_height = int(height/2/13)
+    # block_size_width = int(width/2/17)
+    block_size_height = int(16)
+    block_size_width = int(16)
 
-    raw_lsc = plained_raw.read_plained_file("./Resource/D65_4032_2752_GRBG_2_BLC.raw", height, width, shift_bits=0)
-    shading_R, shading_GR, shading_GB, shading_B = create_lsc_data(raw_lsc, block_size, pattern)
+    raw = plained_raw.read_plained_file("./Resource/20250303/p[MfsrBlend]_req[1]_batch[0]_BPS[1]_[in]_port[0]_w[4096]_h[3072]_stride[8192]_scanline[3072]_20250228_205435_564978.RawPlain16LSB1", height, width, shift_bits=0)
 
-    img2 = plained_raw.read_plained_file("./Resource/D65_4032_2752_GRBG_2_BLC.raw", height, width, shift_bits=0)
+    raw = ISP_BLC.blc.interface(raw, width, height, pattern, clip_range)
+    plained_raw.write_plained_file("./Resource/new_blc.raw",raw)
+
+    shading_R, shading_GR, shading_GB, shading_B = create_lsc_data(raw, block_size_height, block_size_width, pattern)
+
+
+    img2 = plained_raw.read_plained_file("./Resource/20250303/p[MfsrBlend]_req[1]_batch[0]_BPS[1]_[in]_port[0]_w[4096]_h[3072]_stride[8192]_scanline[3072]_20250228_205435_564978.RawPlain16LSB1", height, width, shift_bits=0)
     raw_image_show.raw_image_show_fullsize(img2/clip_range[1], height, width)
 
     # 普通的
     #apply_shading_to_image(img=img, block_size=block_size, shading_R=EX_R, shading_GR=EX_GR, shading_GB=EX_GB, shading_B=EX_B, pattern="GRBG")
     # luma和color shading
-    new_image = apply_shading_to_image_ratio(img=img2, block_size=block_size, shading_R=shading_R, shading_GR=shading_GR, shading_GB=shading_GB, shading_B=shading_B, pattern=pattern, ratio=1, clip_range=clip_range)
+    new_image = apply_shading_to_image_ratio(img=img2, block_size_height=block_size_height, block_size_width=block_size_width, shading_R=shading_R, shading_GR=shading_GR, shading_GB=shading_GB, shading_B=shading_B, pattern=pattern, ratio=1, clip_range=clip_range)
     print(np.min(new_image), np.max(new_image))
-    raw_image_show.raw_image_show_3D(new_image,height,width)  # DebugMK
+    # raw_image_show.raw_image_show_3D(new_image,height,width)  # DebugMK
+    plained_raw.write_plained_file("./Resource/new.raw",new_image)
 
-    # raw_image_show.raw_image_show_fakecolor(new_image/65535, height=1520, width=2688, pattern="BGGR")
+    raw_image_show.raw_image_show_fakecolor(new_image/clip_range[1], height, width, pattern="BGGR")
     raw_image_show.raw_image_show_fullsize(new_image/clip_range[1], height, width)
     print(np.min(new_image), np.max(new_image))
+

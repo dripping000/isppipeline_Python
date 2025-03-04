@@ -30,7 +30,7 @@ def raw_image_show_3D(image,height,width):
     Z =image
     # 具体函数方法可用 help(function) 查看，如：help(ax.plot_surface)
     # ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='rainbow')
-    ax.plot_wireframe(X, Y, Z, rstride=10, cstride=10)
+    ax.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
     plt.show()
     print('show')
 

@@ -92,7 +92,7 @@ def bayer_channel_integration(R, GR, GB, B, pattern):
             data[::2, 1::2] = B
             data[1::2, ::2] = R
             data[1::2, 1::2] = GR
-        elif (pattern == "bggr"):
+        elif (pattern == "BGGR"):
             data[::2, ::2] = B
             data[::2, 1::2] = GB
             data[1::2, ::2] = GR
